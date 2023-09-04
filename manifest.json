@@ -1,0 +1,25 @@
+{
+    "manifest_version": 3,
+    "name": "LeetCode Fix",
+    "description": "Leetcode extension for showing the programming language beside solutions.",
+    "author": "https://github.com/bunnykek",
+    "version": "0.0.1",
+    "icons": {
+        "16": "logo/16.png",
+        "48": "logo/48.png",
+        "128": "logo/128.png"
+    },
+    "host_permissions": [
+        "https://leetcode.com/contest/*"
+    ],
+    "content_scripts": [
+        {
+            "js": [
+                "content.js"
+            ],
+            "matches": [
+                "https://leetcode.com/contest/*"
+            ]
+        }
+    ]
+}
