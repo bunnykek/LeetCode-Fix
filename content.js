@@ -34,9 +34,11 @@ async function manipulate() {
     jsondata['questions'].forEach(element => {
         questopos[element.question_id] = i++;
     });
-    console.log(questopos);
-
-    i=2
+    // console.log(questopos);
+    // console.log(jsondata);
+    i=1
+    var firstuserrow = document.querySelector("#contest-app > div > div > div.ranking-table-container__mOYm > div.table-responsive > table > tbody > tr.success");
+    if(firstuserrow!=null) i=2;
     // console.log(jsondata['submissions']);
     jsondata.submissions.forEach(submission => {
         for(var quesid in submission){
