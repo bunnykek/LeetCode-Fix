@@ -2,9 +2,8 @@
 Chromium Leetcode extension for showing the programming language beside solutions.
 
 ### Before Vs After
-![image](https://github.com/bunnykek/LeetCode-Fix/assets/67633271/fe17b5d4-580d-415d-a8f1-5bbfedf2e167)
+![image](https://github.com/bunnykek/LeetCode-Fix/assets/67633271/6e614897-e3f5-4703-b167-70fa04fc98f2)
 
-![image](https://github.com/bunnykek/LeetCode-Fix/assets/67633271/f2f247ba-31f5-4e5e-b9bd-ce4091c33b37)
 ## How to Install?
 [![](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png)](https://chrome.google.com/webstore/detail/leetcode-fix/kgenneohccgagookoocgihpkohmehnip)
 ### Manually:
