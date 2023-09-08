@@ -1,9 +1,9 @@
 {
     "manifest_version": 3,
     "name": "LeetCode Fix",
-    "description": "Leetcode extension for showing the programming language beside solutions.",
+    "description": "Leetcode extension for showing the programming language beside submissions.",
     "author": "https://github.com/bunnykek",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "icons": {
         "16": "logo/16.png",
         "48": "logo/48.png",
