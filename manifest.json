@@ -3,14 +3,14 @@
     "name": "LeetCode Fix",
     "description": "Leetcode extension for showing the programming language beside submissions.",
     "author": "https://github.com/bunnykek",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "icons": {
         "16": "logo/16.png",
         "48": "logo/48.png",
         "128": "logo/128.png"
     },
     "host_permissions": [
-        "https://leetcode.com/contest/*"
+        "https://leetcode.com/*"
     ],
     "content_scripts": [
         {
@@ -18,7 +18,7 @@
                 "content.js"
             ],
             "matches": [
-                "https://leetcode.com/contest/*"
+                "https://leetcode.com/problems/*/description/"
             ]
         }
     ]
