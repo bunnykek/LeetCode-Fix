@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "LeetCode Fix",
-    "description": "Leetcode extension for showing the programming language beside submissions.",
+    "description": "Leetcode extension for showing dislike count in Dynamic Layout.",
     "author": "https://github.com/bunnykek",
     "version": "0.0.3",
     "icons": {
@@ -18,7 +18,7 @@
                 "content.js"
             ],
             "matches": [
-                "https://leetcode.com/problems/*/description/"
+                "https://leetcode.com/problems/*/description/*"
             ]
         }
     ]
