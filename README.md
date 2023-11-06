@@ -6,8 +6,9 @@
   
 
 ### Before Vs After
-![enter image description here](https://imgur.com/RKYuJeW.jpg)
-  ![enter image description here](https://imgur.com/uejNFZv.jpg)
+![image](https://github.com/bunnykek/LeetCode-Fix/assets/67633271/f908f77c-c855-4e6a-86a0-462726afd6b9)
+![image](https://github.com/bunnykek/LeetCode-Fix/assets/67633271/419e1917-8807-4098-ad8e-e716b4a6cfcb)
+
 ## How to Install?
 (Consider following the manual method for latest updates)      
 [![](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png)](https://chrome.google.com/webstore/detail/leetcode-fix/kgenneohccgagookoocgihpkohmehnip)
