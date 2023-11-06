@@ -9,7 +9,7 @@
 ![enter image description here](https://imgur.com/RKYuJeW.jpg)
   ![enter image description here](https://imgur.com/uejNFZv.jpg)
 ## How to Install?
-
+(Consider following the manual method for latest updates)      
 [![](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png)](https://chrome.google.com/webstore/detail/leetcode-fix/kgenneohccgagookoocgihpkohmehnip)
 
 ### Manually:
