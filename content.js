@@ -18,7 +18,7 @@ async function manipulate() {
     console.log("dislikes", jresp['data']['question']['dislikes']);
     const flag = document.getElementsByClassName("dislike_count");
     if (flag == null) {
-        let selector = document.querySelector("[data-icon='thumbs-down']");
+        let selector = document.querySelector("[data-icon='thumbs-down']").parentElement;
         selector.insertAdjacentHTML('afterend', DISLIKE_ELE);
         selector.parentElement.addEventListener('click', dislikeHandler);
     }
@@ -56,7 +56,7 @@ function dislikeHandler() {
 
 waitForElm("[data-icon='thumbs-down']").then((elm) => {
     console.log('Page reloaded');
-    let selector = document.querySelector("[data-icon='thumbs-down']");
+    let selector = document.querySelector("[data-icon='thumbs-down']").parentElement;
     selector.insertAdjacentHTML('afterend', DISLIKE_ELE);
     selector.parentElement.addEventListener('click', dislikeHandler);
     manipulate();
