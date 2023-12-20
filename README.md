@@ -10,8 +10,9 @@
 ![image](https://github.com/bunnykek/LeetCode-Fix/assets/67633271/419e1917-8807-4098-ad8e-e716b4a6cfcb)
 
 ## How to Install?
-(Consider following the manual method for latest updates)      
 [![](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png)](https://chrome.google.com/webstore/detail/leetcode-fix/kgenneohccgagookoocgihpkohmehnip)
+
+[![GMEET](https://img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/RE1Mu3b?ver=5c31)]()
 
 ### Manually:
 
