@@ -12,7 +12,7 @@
 ## How to Install?
 [![](https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/iNEddTyWiMfLSwFD6qGq.png)](https://chrome.google.com/webstore/detail/leetcode-fix/kgenneohccgagookoocgihpkohmehnip)
 
-[![GMEET](https://img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/RE1Mu3b?ver=5c31)]()
+[![GMEET](https://img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/RE1Mu3b?ver=5c31)](https://microsoftedge.microsoft.com/addons/detail/ecmgjaapdibljpapfodbgkphmgebkbha)
 
 ### Manually:
 
