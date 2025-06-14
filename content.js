@@ -1,8 +1,15 @@
 //by @bunnykek or lc: bunny404
 
-const DISLIKE_ELE = `<div class="dislike_count"></div>`;
+const EMPTY_DIV = `<div></div>`;
 const THUMBS_UP_SELECTOR = '[data-icon="thumbs-up"]';
 const THUMBS_DOWN_SELECTOR = '[data-icon="thumbs-down"]';
+
+function handleThumbsDownClick(event) {
+    const thumbsDownButton = event.srcElement.closest('button');
+    const toggled = thumbsDownButton.firstElementChild.firstElementChild.getAttribute('data-prefix') == 'far';
+    const numDislikes = thumbsDownButton.lastElementChild.innerHTML;
+    thumbsDownButton.lastElementChild.innerHTML = parseInt(numDislikes) + (toggled ? 1 : -1);
+}
 
 async function manipulate() {
     const url = window.location.href;
@@ -30,13 +37,14 @@ async function manipulate() {
     console.log("likes", num_likes);
     console.log("dislikes", num_dislikes);
 
-    const thumbsUpButton = document.querySelector(THUMBS_UP_SELECTOR)?.closest('button');
-    const thumbsDownButton = document.querySelector(THUMBS_DOWN_SELECTOR)?.closest('button');
-    thumbsDownButton.insertAdjacentHTML('afterend', DISLIKE_ELE);
-    thumbsDownButton.parentElement.addEventListener('click', dislikeHandler);
-
+    const thumbsUpButton = document.querySelector(THUMBS_UP_SELECTOR).closest('button');
+    const thumbsDownButton = document.querySelector(THUMBS_DOWN_SELECTOR).closest('button');
+    thumbsDownButton.lastElementChild.insertAdjacentHTML('afterend', EMPTY_DIV);
     thumbsUpButton.lastElementChild.innerHTML = num_likes;
     thumbsDownButton.lastElementChild.innerHTML = num_dislikes;
+    thumbsDownButton.addEventListener('click', handleThumbsDownClick);
+
+    // Copy css from like button to dislike button
     thumbsDownButton.classList = thumbsUpButton.classList;
 }
 
@@ -60,20 +68,8 @@ function waitForElm(selector) {
     });
 }
 
-let toggled = false;
-function dislikeHandler() {
-    toggled = !toggled;
-    const dislike_count = document.getElementsByClassName("dislike_count")[0]?.innerHTML;
-    if (dislike_count) {
-        document.getElementsByClassName("dislike_count")[0].innerHTML = parseInt(dislike_count) + (toggled ? 1 : -1);
-    }
-}
-
 waitForElm(THUMBS_DOWN_SELECTOR).then((elm) => {
     console.log('Page reloaded');
-    const selector = document.querySelector(THUMBS_DOWN_SELECTOR).parentElement;
-    selector.insertAdjacentHTML('afterend', DISLIKE_ELE);
-    selector.parentElement.addEventListener('click', dislikeHandler);
     manipulate();
 });
 
