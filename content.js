@@ -1,6 +1,16 @@
 //by @bunnykek or lc: bunny404
 
-const DISLIKE_ELE = `<div class="dislike_count"></div>`
+const DISLIKE_ELE = `<div class="dislike_count"></div>`;
+const THUMBS_UP_SELECTOR = '[data-icon="thumbs-up"]';
+const THUMBS_DOWN_SELECTOR = '[data-icon="thumbs-down"]';
+
+function applyStyles() {
+    const thumbsUp = document.querySelector(THUMBS_UP_SELECTOR)?.closest('button');
+    const thumbsDown = document.querySelector(THUMBS_DOWN_SELECTOR)?.closest('button');
+    if (thumbsUp && thumbsDown) {
+        thumbsDown.classList = thumbsUp.classList;
+    }
+}
 
 async function manipulate() {
     let url = window.location.href;
@@ -18,11 +28,12 @@ async function manipulate() {
     console.log("dislikes", jresp['data']['question']['dislikes']);
     const flag = document.getElementsByClassName("dislike_count");
     if (flag == null) {
-        let selector = document.querySelector("[data-icon='thumbs-down']").parentElement;
+        let selector = document.querySelector(THUMBS_DOWN_SELECTOR).parentElement;
         selector.insertAdjacentHTML('afterend', DISLIKE_ELE);
         selector.parentElement.addEventListener('click', dislikeHandler);
     }
     document.getElementsByClassName("dislike_count")[0].innerHTML = jresp['data']['question']['dislikes'];
+    applyStyles();
 }
 
 function waitForElm(selector) {
@@ -54,9 +65,9 @@ function dislikeHandler() {
     }
 }
 
-waitForElm("[data-icon='thumbs-down']").then((elm) => {
+waitForElm(THUMBS_DOWN_SELECTOR).then((elm) => {
     console.log('Page reloaded');
-    let selector = document.querySelector("[data-icon='thumbs-down']").parentElement;
+    let selector = document.querySelector(THUMBS_DOWN_SELECTOR).parentElement;
     selector.insertAdjacentHTML('afterend', DISLIKE_ELE);
     selector.parentElement.addEventListener('click', dislikeHandler);
     manipulate();
@@ -68,7 +79,7 @@ new MutationObserver(() => {
     const match = url.match(/https:\/\/leetcode\.com\/problems\/([a-z0-9\-]+)/);
     if (!lastUrl.includes(match[1])) {
         lastUrl = url;
-        waitForElm("[data-icon='thumbs-down']").then((elm) => {
+        waitForElm(THUMBS_DOWN_SELECTOR).then((elm) => {
             console.log('Element is ready');
             manipulate();
         });
