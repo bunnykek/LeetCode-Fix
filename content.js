@@ -4,36 +4,40 @@ const DISLIKE_ELE = `<div class="dislike_count"></div>`;
 const THUMBS_UP_SELECTOR = '[data-icon="thumbs-up"]';
 const THUMBS_DOWN_SELECTOR = '[data-icon="thumbs-down"]';
 
-function applyStyles() {
-    const thumbsUp = document.querySelector(THUMBS_UP_SELECTOR)?.closest('button');
-    const thumbsDown = document.querySelector(THUMBS_DOWN_SELECTOR)?.closest('button');
-    if (thumbsUp && thumbsDown) {
-        thumbsDown.classList = thumbsUp.classList;
-    }
-}
-
 async function manipulate() {
-    let url = window.location.href;
-    const match = url.match(/https:\/\/leetcode\.com\/problems\/([a-z0-9\-]+)/);
-    console.log("Running extension for ", url);
-    console.log("doing post req");
-    let response = await fetch("https://leetcode.com/graphql/", {
-        "headers": {
-            "content-type": "application/json"
-        },
-        "body": `{\"query\":\"\\n    query questionTitle($titleSlug: String!) {\\n  question(titleSlug: $titleSlug) {\\n  dislikes\\n  }\\n}\\n    \",\"variables\":{\"titleSlug\":\"${match[1]}\"},\"operationName\":\"questionTitle\"}`,
-        "method": "POST"
+    const url = window.location.href;
+    const problemId = url.match(/https:\/\/leetcode\.com\/problems\/([a-z0-9\-]+)/)[1];
+    const query = `
+      query questionData($titleSlug: String!) {
+        question(titleSlug: $titleSlug) {
+          likes
+          dislikes
+        }
+      }
+    `;
+    const response = await fetch('https://leetcode.com/graphql/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            query,
+            variables: { titleSlug: problemId },
+            operationName: 'questionData'
+        })
     });
-    let jresp = await response.json();
-    console.log("dislikes", jresp['data']['question']['dislikes']);
-    const flag = document.getElementsByClassName("dislike_count");
-    if (flag == null) {
-        let selector = document.querySelector(THUMBS_DOWN_SELECTOR).parentElement;
-        selector.insertAdjacentHTML('afterend', DISLIKE_ELE);
-        selector.parentElement.addEventListener('click', dislikeHandler);
-    }
-    document.getElementsByClassName("dislike_count")[0].innerHTML = jresp['data']['question']['dislikes'];
-    applyStyles();
+    const jresp = await response.json();
+    const num_likes = jresp['data']['question']['likes'];
+    const num_dislikes = jresp['data']['question']['dislikes'];
+    console.log("likes", num_likes);
+    console.log("dislikes", num_dislikes);
+
+    const thumbsUpButton = document.querySelector(THUMBS_UP_SELECTOR)?.closest('button');
+    const thumbsDownButton = document.querySelector(THUMBS_DOWN_SELECTOR)?.closest('button');
+    thumbsDownButton.insertAdjacentHTML('afterend', DISLIKE_ELE);
+    thumbsDownButton.parentElement.addEventListener('click', dislikeHandler);
+
+    thumbsUpButton.lastElementChild.innerHTML = num_likes;
+    thumbsDownButton.lastElementChild.innerHTML = num_dislikes;
+    thumbsDownButton.classList = thumbsUpButton.classList;
 }
 
 function waitForElm(selector) {
@@ -67,7 +71,7 @@ function dislikeHandler() {
 
 waitForElm(THUMBS_DOWN_SELECTOR).then((elm) => {
     console.log('Page reloaded');
-    let selector = document.querySelector(THUMBS_DOWN_SELECTOR).parentElement;
+    const selector = document.querySelector(THUMBS_DOWN_SELECTOR).parentElement;
     selector.insertAdjacentHTML('afterend', DISLIKE_ELE);
     selector.parentElement.addEventListener('click', dislikeHandler);
     manipulate();
