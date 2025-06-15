@@ -69,11 +69,12 @@ function manipulateDislikes(thumbsUpButton, thumbsDownButton, dislikes) {
     thumbsDownButton.lastElementChild.innerHTML = dislikes;
 }
 
+let thumbsUpListenerAdded = false;
 function manipulateLikes(thumbsUpButton, newLikes) {
     thumbsUpButton.lastElementChild.innerHTML = newLikes;
-    if (!manipulateLikes.listenerAdded) {
+    if (!thumbsUpListenerAdded) {
         thumbsUpButton.addEventListener('click', handleThumbsClick);
-        manipulateLikes.listenerAdded = true;
+        thumbsUpListenerAdded = true;
     }
 }
 
@@ -87,9 +88,11 @@ function waitForElementToExist(selector) {
             element = document.querySelector(selector);
             if (element) {
                 observer.disconnect();
+                clearTimeout(observerTimeout);
                 resolve(element);
             }
         });
+        const observerTimeout = setTimeout(() => observer.disconnect(), 5000);
         observer.observe(document.body, { childList: true, subtree: true });
     });
 }
@@ -102,9 +105,11 @@ function waitForInnerHTMLChange(element, initialValue) {
         const observer = new MutationObserver(() => {
             if (element.innerHTML != initialValue) {
                 observer.disconnect();
+                clearTimeout(observerTimeout);
                 resolve();
             }
         });
+        const observerTimeout = setTimeout(() => observer.disconnect(), 5000);
         observer.observe(element, { childList: true, subtree: true, characterData: true });
     });
 }
