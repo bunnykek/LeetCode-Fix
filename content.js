@@ -11,19 +11,30 @@ function handleThumbsClick(event) {
     thumbsButton.lastElementChild.innerHTML = parseInt(count) + (toggled ? 1 : -1);
 }
 
-function getProblemId() {
-    const url = window.location.href;
-    return url.match(/https:\/\/leetcode\.com\/problems\/([a-z0-9\-]+)/)[1];
-}
-
+const LIKES_DISLIKES_CACHE_KEY = 'violentmonkey_lcLikesDislikesCache';
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 async function getLikesAndDislikes(problemId) {
-    const query = `
-      query questionData($titleSlug: String!) {
-        question(titleSlug: $titleSlug) {
-          likes
-          dislikes
+    let cache = {};
+    const rawCache = localStorage.getItem(LIKES_DISLIKES_CACHE_KEY);
+    if (rawCache) {
+        try {
+            cache = JSON.parse(rawCache);
+        } catch (_) {
+            cache = {};
         }
-      }
+    }
+    const entry = cache[problemId];
+    if (entry && Date.now() - entry.ts < ONE_DAY_MS) {
+        return { likes: entry.likes, dislikes: entry.dislikes };
+    }
+
+    const query = `
+        query questionData($titleSlug: String!) {
+            question(titleSlug: $titleSlug) {
+                likes
+                dislikes
+            }
+        }
     `;
     const response = await fetch('https://leetcode.com/graphql/', {
         method: 'POST',
@@ -34,11 +45,15 @@ async function getLikesAndDislikes(problemId) {
             operationName: 'questionData'
         })
     });
-    const jresp = await response.json();
-    return {
-        'likes': jresp['data']['question']['likes'],
-        'dislikes': jresp['data']['question']['dislikes']
+    const { data } = await response.json();
+    const result = {
+        likes: data.question.likes,
+        dislikes: data.question.dislikes
     };
+
+    cache[problemId] = { ...result, ts: Date.now() };
+    localStorage.setItem(LIKES_DISLIKES_CACHE_KEY, JSON.stringify(cache));
+    return result;
 }
 
 function manipulateDislikes(thumbsUpButton, thumbsDownButton, dislikes) {
@@ -55,31 +70,19 @@ function manipulateDislikes(thumbsUpButton, thumbsDownButton, dislikes) {
 }
 
 function manipulateLikes(thumbsUpButton, newLikes) {
-    // Replace truncated like count with the full like count
-    const updateLikesInterval = setInterval(() => {
-        const oldLikes = thumbsUpButton.lastElementChild.innerHTML;
-        if (oldLikes.includes('.') || oldLikes.endsWith('K')) {
-            thumbsUpButton.lastElementChild.innerHTML = newLikes;
-            if (!manipulateLikes.listenerAdded) {
-                thumbsUpButton.addEventListener('click', handleThumbsClick);
-                manipulateLikes.listenerAdded = true;
-            }
-            clearInterval(updateLikesInterval);
-        }
-    }, 200);
-    // Stop trying after 3s
-    setTimeout(() => {
-        clearInterval(updateLikesInterval);
-    }, 3000);
+    thumbsUpButton.lastElementChild.innerHTML = newLikes;
+    if (!manipulateLikes.listenerAdded) {
+        thumbsUpButton.addEventListener('click', handleThumbsClick);
+        manipulateLikes.listenerAdded = true;
+    }
 }
 
-function waitForElm(selector) {
+function waitForElementToExist(selector) {
     return new Promise(resolve => {
         let element = document.querySelector(selector);
         if (element) {
             return resolve(element)
         };
-
         const observer = new MutationObserver(() => {
             element = document.querySelector(selector);
             if (element) {
@@ -87,26 +90,64 @@ function waitForElm(selector) {
                 observer.disconnect();
             }
         });
-
         observer.observe(document.body, { childList: true, subtree: true });
     });
 }
 
+function waitForInnerHTMLChange(element, initialValue) {
+    return new Promise(resolve => {
+        if (element.innerHTML != initialValue) {
+            resolve();
+        }
+        const observer = new MutationObserver(() => {
+            if (element.innerHTML != initialValue) {
+                observer.disconnect();
+                resolve();
+            }
+        });
+        observer.observe(element, { childList: true, subtree: true, characterData: true });
+    });
+}
+
+function getProblemId() {
+    const url = window.location.href;
+    const matches = url.match(/problems\/([a-z0-9\-]+)/);
+    if (matches) {
+        return matches[1];
+    }
+    return null;
+}
+
 let prevProblemId;
+let prevLikes;
 new MutationObserver(async () => {
     const problemId = getProblemId();
-    if (problemId != prevProblemId) {
+    if (!problemId || problemId == prevProblemId) {
         prevProblemId = problemId;
-        const { likes, dislikes } = await getLikesAndDislikes(problemId);
-        console.log(likes);
-        console.log(dislikes);
-        waitForElm(THUMBS_DOWN_SELECTOR).then(
-            thumbsDownIcon => {
-                const thumbsUpButton = document.querySelector(THUMBS_UP_SELECTOR).closest('button');
-                const thumbsDownButton = thumbsDownIcon.closest('button')
-                manipulateLikes(thumbsUpButton, likes);
-                manipulateDislikes(thumbsUpButton, thumbsDownButton, dislikes);
-            }
-        );
+        return;
     }
-}).observe(document, { subtree: true, childList: true });
+
+    prevProblemId = problemId; // pre-emptively do this to prevent async mutations from triggering
+    const { likes, dislikes } = await getLikesAndDislikes(problemId);
+    console.log('likes:', likes);
+    console.log('dislikes:', dislikes);
+
+    let thumbsUpButton;
+    await waitForElementToExist(THUMBS_UP_SELECTOR).then(
+        async thumbsUpIcon => {
+            thumbsUpButton = thumbsUpIcon.closest('button');
+            // If the new problem has a different like count or more than 1K likes
+            // Then wait for page to update with the new like count
+            if (prevLikes && (likes != prevLikes || likes >= 1000)) {
+                await waitForInnerHTMLChange(thumbsUpButton.lastElementChild, prevLikes.toString());
+            }
+        }
+    )
+    // Update likes count
+    manipulateLikes(thumbsUpButton, likes);
+    prevLikes = likes;
+
+    // Update dislikes count
+    const thumbsDownButton = document.querySelector(THUMBS_DOWN_SELECTOR).closest('button');
+    manipulateDislikes(thumbsUpButton, thumbsDownButton, dislikes);
+}).observe(document.body, { subtree: true, childList: true });
