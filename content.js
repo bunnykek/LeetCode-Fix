@@ -81,13 +81,13 @@ function waitForElementToExist(selector) {
     return new Promise(resolve => {
         let element = document.querySelector(selector);
         if (element) {
-            return resolve(element)
-        };
+            return resolve(element);
+        }
         const observer = new MutationObserver(() => {
             element = document.querySelector(selector);
             if (element) {
-                resolve(element);
                 observer.disconnect();
+                resolve(element);
             }
         });
         observer.observe(document.body, { childList: true, subtree: true });
@@ -97,7 +97,7 @@ function waitForElementToExist(selector) {
 function waitForInnerHTMLChange(element, initialValue) {
     return new Promise(resolve => {
         if (element.innerHTML != initialValue) {
-            resolve();
+            return resolve();
         }
         const observer = new MutationObserver(() => {
             if (element.innerHTML != initialValue) {
