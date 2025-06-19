@@ -1,87 +1,158 @@
 //by @bunnykek or lc: bunny404
 
-const DISLIKE_ELE = `<div class="dislike_count"></div>`;
+const EMPTY_DIV = `<div></div>`;
 const THUMBS_UP_SELECTOR = '[data-icon="thumbs-up"]';
 const THUMBS_DOWN_SELECTOR = '[data-icon="thumbs-down"]';
 
-function applyStyles() {
-    const thumbsUp = document.querySelector(THUMBS_UP_SELECTOR)?.closest('button');
-    const thumbsDown = document.querySelector(THUMBS_DOWN_SELECTOR)?.closest('button');
-    if (thumbsUp && thumbsDown) {
-        thumbsDown.classList = thumbsUp.classList;
-    }
+function handleThumbsClick(event) {
+    const thumbsButton = event.srcElement.closest('button');
+    const toggled = thumbsButton.firstElementChild.firstElementChild.getAttribute('data-prefix') == 'far';
+    const count = thumbsButton.lastElementChild.innerHTML;
+    thumbsButton.lastElementChild.innerHTML = parseInt(count) + (toggled ? 1 : -1);
 }
 
-async function manipulate() {
-    let url = window.location.href;
-    const match = url.match(/https:\/\/leetcode\.com\/problems\/([a-z0-9\-]+)/);
-    console.log("Running extension for ", url);
-    console.log("doing post req");
-    let response = await fetch("https://leetcode.com/graphql/", {
-        "headers": {
-            "content-type": "application/json"
-        },
-        "body": `{\"query\":\"\\n    query questionTitle($titleSlug: String!) {\\n  question(titleSlug: $titleSlug) {\\n  dislikes\\n  }\\n}\\n    \",\"variables\":{\"titleSlug\":\"${match[1]}\"},\"operationName\":\"questionTitle\"}`,
-        "method": "POST"
-    });
-    let jresp = await response.json();
-    console.log("dislikes", jresp['data']['question']['dislikes']);
-    const flag = document.getElementsByClassName("dislike_count");
-    if (flag == null) {
-        let selector = document.querySelector(THUMBS_DOWN_SELECTOR).parentElement;
-        selector.insertAdjacentHTML('afterend', DISLIKE_ELE);
-        selector.parentElement.addEventListener('click', dislikeHandler);
-    }
-    document.getElementsByClassName("dislike_count")[0].innerHTML = jresp['data']['question']['dislikes'];
-    applyStyles();
-}
-
-function waitForElm(selector) {
-    return new Promise(resolve => {
-        if (document.querySelector(selector)) {
-            return resolve(document.querySelector(selector));
+const LIKES_DISLIKES_CACHE_KEY = 'violentmonkey_lcLikesDislikesCache';
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+async function getLikesAndDislikes(problemId) {
+    let cache = {};
+    const rawCache = localStorage.getItem(LIKES_DISLIKES_CACHE_KEY);
+    if (rawCache) {
+        try {
+            cache = JSON.parse(rawCache);
+        } catch (_) {
+            cache = {};
         }
+    }
+    const entry = cache[problemId];
+    if (entry && Date.now() - entry.ts < ONE_DAY_MS) {
+        return { likes: entry.likes, dislikes: entry.dislikes };
+    }
 
-        const observer = new MutationObserver(mutations => {
-            if (document.querySelector(selector)) {
-                resolve(document.querySelector(selector));
+    const query = `
+        query questionData($titleSlug: String!) {
+            question(titleSlug: $titleSlug) {
+                likes
+                dislikes
+            }
+        }
+    `;
+    const response = await fetch('https://leetcode.com/graphql/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            query,
+            variables: { titleSlug: problemId },
+            operationName: 'questionData'
+        })
+    });
+    const { data } = await response.json();
+    const result = {
+        likes: data.question.likes,
+        dislikes: data.question.dislikes
+    };
+
+    cache[problemId] = { ...result, ts: Date.now() };
+    localStorage.setItem(LIKES_DISLIKES_CACHE_KEY, JSON.stringify(cache));
+    return result;
+}
+
+function manipulateDislikes(thumbsUpButton, thumbsDownButton, dislikes) {
+    // Add div and click handler if needed
+    if (thumbsDownButton.childElementCount == 1) {
+        thumbsDownButton.lastElementChild.insertAdjacentHTML('afterend', EMPTY_DIV);
+        thumbsDownButton.addEventListener('click', handleThumbsClick);
+        // Copy css from like button to dislike button
+        thumbsDownButton.classList = thumbsUpButton.classList;
+    }
+
+    // Update count
+    thumbsDownButton.lastElementChild.innerHTML = dislikes;
+}
+
+let thumbsUpListenerAdded = false;
+function manipulateLikes(thumbsUpButton, newLikes) {
+    thumbsUpButton.lastElementChild.innerHTML = newLikes;
+    if (!thumbsUpListenerAdded) {
+        thumbsUpButton.addEventListener('click', handleThumbsClick);
+        thumbsUpListenerAdded = true;
+    }
+}
+
+function waitForElementToExist(selector) {
+    return new Promise(resolve => {
+        let element = document.querySelector(selector);
+        if (element) {
+            return resolve(element);
+        }
+        const observer = new MutationObserver(() => {
+            element = document.querySelector(selector);
+            if (element) {
                 observer.disconnect();
+                clearTimeout(observerTimeout);
+                resolve(element);
             }
         });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
+        const observerTimeout = setTimeout(() => observer.disconnect(), 5000);
+        observer.observe(document.body, { childList: true, subtree: true });
     });
 }
 
-let toggled = false;
-function dislikeHandler() {
-    toggled = !toggled;
-    const dislike_count = document.getElementsByClassName("dislike_count")[0]?.innerHTML;
-    if (dislike_count) {
-        document.getElementsByClassName("dislike_count")[0].innerHTML = parseInt(dislike_count) + (toggled ? 1 : -1);
-    }
+function waitForInnerHTMLChange(element, initialValue) {
+    return new Promise(resolve => {
+        if (element.innerHTML != initialValue) {
+            return resolve();
+        }
+        const observer = new MutationObserver(() => {
+            if (element.innerHTML != initialValue) {
+                observer.disconnect();
+                clearTimeout(observerTimeout);
+                resolve();
+            }
+        });
+        const observerTimeout = setTimeout(() => observer.disconnect(), 5000);
+        observer.observe(element, { childList: true, subtree: true, characterData: true });
+    });
 }
 
-waitForElm(THUMBS_DOWN_SELECTOR).then((elm) => {
-    console.log('Page reloaded');
-    let selector = document.querySelector(THUMBS_DOWN_SELECTOR).parentElement;
-    selector.insertAdjacentHTML('afterend', DISLIKE_ELE);
-    selector.parentElement.addEventListener('click', dislikeHandler);
-    manipulate();
-});
-
-let lastUrl = location.href;
-new MutationObserver(() => {
-    const url = location.href;
-    const match = url.match(/https:\/\/leetcode\.com\/problems\/([a-z0-9\-]+)/);
-    if (!lastUrl.includes(match[1])) {
-        lastUrl = url;
-        waitForElm(THUMBS_DOWN_SELECTOR).then((elm) => {
-            console.log('Element is ready');
-            manipulate();
-        });
+function getProblemId() {
+    const url = window.location.href;
+    const matches = url.match(/problems\/([a-z0-9\-]+)/);
+    if (matches) {
+        return matches[1];
     }
-}).observe(document, { subtree: true, childList: true });
+    return null;
+}
+
+let prevProblemId;
+let prevLikes;
+new MutationObserver(async () => {
+    const problemId = getProblemId();
+    if (!problemId || problemId == prevProblemId) {
+        prevProblemId = problemId;
+        return;
+    }
+
+    prevProblemId = problemId; // pre-emptively do this to prevent async mutations from triggering
+    const { likes, dislikes } = await getLikesAndDislikes(problemId);
+    console.log('likes:', likes);
+    console.log('dislikes:', dislikes);
+
+    let thumbsUpButton;
+    await waitForElementToExist(THUMBS_UP_SELECTOR).then(
+        async thumbsUpIcon => {
+            thumbsUpButton = thumbsUpIcon.closest('button');
+            // If the new problem has a different like count or more than 1K likes
+            // Then wait for page to update with the new like count
+            if (prevLikes && (likes != prevLikes || likes >= 1000)) {
+                await waitForInnerHTMLChange(thumbsUpButton.lastElementChild, prevLikes.toString());
+            }
+        }
+    )
+    // Update likes count
+    manipulateLikes(thumbsUpButton, likes);
+    prevLikes = likes;
+
+    // Update dislikes count
+    const thumbsDownButton = document.querySelector(THUMBS_DOWN_SELECTOR).closest('button');
+    manipulateDislikes(thumbsUpButton, thumbsDownButton, dislikes);
+}).observe(document.body, { subtree: true, childList: true });
