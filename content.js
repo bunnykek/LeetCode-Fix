@@ -1,8 +1,8 @@
 //by @bunnykek or lc: bunny404
 
 const EMPTY_DIV = `<div></div>`;
-const THUMBS_UP_SELECTOR = '[data-icon="thumbs-up"]';
-const THUMBS_DOWN_SELECTOR = '[data-icon="thumbs-down"]';
+const THUMBS_UP_SELECTOR = 'svg.fa-thumbs-up, [data-icon="thumbs-up"]';
+const THUMBS_DOWN_SELECTOR = 'svg.fa-thumbs-down, [data-icon="thumbs-down"]';
 
 function handleThumbsClick(event) {
     const thumbsButton = event.srcElement.closest('button');
